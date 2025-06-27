@@ -1,48 +1,83 @@
+
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
- <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>⚡</text></svg>">
   <title>반응속도 테스트</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>⚡</text></svg>">
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5852902201107089"
+     crossorigin="anonymous"></script>
+
+  <!-- 스타일 -->
   <style>
     body {
-      font-family:'Arial'; text-align:center; background:#f9f9f9;
-      margin:0; padding:20px;
+      font-family: 'Arial'; text-align: center; background: #f9f9f9;
+      margin: 0; padding: 20px;
     }
     #game {
-      max-width:400px; margin:20px auto; display:flex; flex-wrap:wrap; gap:10px;
+      max-width: 400px; margin: 20px auto; display: flex; flex-wrap: wrap; gap: 10px;
     }
     .box {
       flex: 1 0 calc(20% - 10px);
       height: 60px; line-height: 60px;
-      background:#8eca67; color:#333;
-      font-size:20px; font-weight:bold;
-      border-radius:10px; cursor:pointer;
-      user-select:none;
+      background: #8eca67; color: #333;
+      font-size: 20px; font-weight: bold;
+      border-radius: 10px; cursor: pointer;
+      user-select: none;
       transition: background 0.2s;
     }
     .disappear { visibility: hidden; }
     #start {
-      cursor:pointer; color:#fff; background:#418712;
-      display:inline-block; padding:12px 24px;
-      margin:20px auto; border-radius:10px;
-      font-size:18px;
+      cursor: pointer; color: #fff; background: #418712;
+      display: inline-block; padding: 12px 24px;
+      margin: 20px auto; border-radius: 10px;
+      font-size: 18px;
     }
-    #timer { font-size:18px; margin-top:10px; }
-    #best, #recent, #rank { margin-top:10px; font-weight:bold; }
-    #notice { font-size:14px; color:#555; margin-top:10px; }
+    #timer, #best, #recent, #rank, #notice {
+      font-size: 16px; margin-top: 10px;
+    }
     button {
-      margin:6px; padding:8px 16px;
-      font-size:15px; border-radius:8px;
+      margin: 6px; padding: 8px 16px;
+      font-size: 15px; border-radius: 8px;
       cursor: pointer;
     }
-    #shareArea { margin-top:15px; }
+    #shareArea { margin-top: 15px; }
+    footer {
+      margin-top: 50px; font-size: 14px; color: #777;
+    }
+    section { max-width: 600px; margin: 40px auto; text-align: left; line-height: 1.6; }
   </style>
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 
+  <!-- 광고 -->
+  <ins class="adsbygoogle"
+       style="display:block; text-align:center; margin:20px 0;"
+       data-ad-client="ca-pub-5852902201107089"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <!-- 소개 콘텐츠 -->
+  <section>
+    <h2>ὐd 반응속도 테스트란?</h2>
+    <p>이 사이트는 숫자 클릭 게임을 통해 사용자의 반응 속도를 측정하고, 집중력 향상에 도움을 주기 위해 제작되었습니다. 기록은 자동으로 저장되며, 최고기록 기준으로 간단한 순위 시스템도 제공됩니다.</p>
+    <h3>📌 사용 방법</h3>
+    <ul>
+      <li>‘게임 시작’ 버튼을 눌러 게임을 시작하세요.</li>
+      <li>숫자 1부터 50까지 순서대로 클릭하세요.</li>
+      <li>완료 시 시간이 자동 측정되며 기록됩니다.</li>
+    </ul>
+    <p>순발력 향상, 스트레스 해소, 잠깐의 집중 훈련이 필요할 때 사용해보세요!</p>
+  </section>
+
+  <!-- 게임 본문 -->
   <h1 id="start">게임 시작~!</h1>
   <div id="game"></div>
   <p id="timer">⏱️ 시간 : <span id="time">0.00</span>초</p>
@@ -59,15 +94,16 @@
     <button onclick="copyToClipboard()">기록 복사</button>
   </div>
 
-  <p id="notice">※ 기록은 이 브라우저에 자동 저장됩니다.</p>
+  <p id="notice">‼️ 기록은 이 브라우저에 자동 저장됩니다.</p>
 
+  <!-- 자바스크립트 -->
   <script>
     let extraNumbers = [];
     let current = 1;
     let startTime;
     let timerInterval;
 
-    const siteURL = "https://my-reaction-test.com";
+    const siteURL = "https://clickhero.online";
     const percentileMap = [
       { time: 2.0, rank: "상위 5%" },
       { time: 2.5, rank: "상위 10%" },
@@ -86,8 +122,8 @@
     }
 
     function shuffle() {
-      const first = Array.from({length:25}, (_, i)=>i+1).sort(()=>Math.random()-0.5);
-      extraNumbers = Array.from({length:25}, (_, i)=>i+26).sort(()=>Math.random()-0.5);
+      const first = Array.from({ length: 25 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+      extraNumbers = Array.from({ length: 25 }, (_, i) => i + 26).sort(() => Math.random() - 0.5);
       return first;
     }
 
@@ -98,7 +134,7 @@
 
     function updateTimer() {
       if (startTime && current <= 50) {
-        const now = ((Date.now() - startTime)/1000).toFixed(2);
+        const now = ((Date.now() - startTime) / 1000).toFixed(2);
         $("#time").text(now);
       }
     }
@@ -111,7 +147,6 @@
       } else {
         alert(`기록: ${time}초`);
       }
-
       let recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
       recent.unshift(time);
       if (recent.length > 3) recent = recent.slice(0, 3);
@@ -170,8 +205,8 @@
       });
     }
 
-    $(function(){
-      $("#start").click(function(){
+    $(function () {
+      $("#start").click(function () {
         const first = shuffle();
         renderGame(first);
         current = 1;
@@ -183,7 +218,7 @@
         timerInterval = setInterval(updateTimer, 100);
       });
 
-      $("#game").on("click", ".box", function(){
+      $("#game").on("click", ".box", function () {
         const val = Number($(this).text());
         if (val === current) {
           current++;
@@ -212,6 +247,12 @@
       renderInfo();
     });
   </script>
+
+  <footer>
+    <hr>
+    <p><a href="about.html">사이트 소개</a> | <a href="terms.html">이용약관</a> | <a href="privacy.html">개인정보처리방침</a></p>
+    <p>© 2025 Reaction Game | Made by Cairo</p>
+  </footer>
 
 </body>
 </html>
