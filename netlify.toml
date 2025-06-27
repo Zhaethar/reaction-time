@@ -1,3 +1,7 @@
 [build]
   publish = "www"
+<<<<<<< HEAD
   command = "echo 'no build step'"
+=======
+  command = "echo 'no build step'"
+>>>>>>> c9c9a29 (첫 커밋: reaction-time 프로젝트 초기화)
