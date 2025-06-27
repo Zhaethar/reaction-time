@@ -1,2 +1,2 @@
 [build]
-  command = "echo 'no build step'"
+  command = 'echo "no build step"'
