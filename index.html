@@ -1,0 +1,217 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>⚡</text></svg>">
+  <title>반응속도 테스트</title>
+  <style>
+    body {
+      font-family:'Arial'; text-align:center; background:#f9f9f9;
+      margin:0; padding:20px;
+    }
+    #game {
+      max-width:400px; margin:20px auto; display:flex; flex-wrap:wrap; gap:10px;
+    }
+    .box {
+      flex: 1 0 calc(20% - 10px);
+      height: 60px; line-height: 60px;
+      background:#8eca67; color:#333;
+      font-size:20px; font-weight:bold;
+      border-radius:10px; cursor:pointer;
+      user-select:none;
+      transition: background 0.2s;
+    }
+    .disappear { visibility: hidden; }
+    #start {
+      cursor:pointer; color:#fff; background:#418712;
+      display:inline-block; padding:12px 24px;
+      margin:20px auto; border-radius:10px;
+      font-size:18px;
+    }
+    #timer { font-size:18px; margin-top:10px; }
+    #best, #recent, #rank { margin-top:10px; font-weight:bold; }
+    #notice { font-size:14px; color:#555; margin-top:10px; }
+    button {
+      margin:6px; padding:8px 16px;
+      font-size:15px; border-radius:8px;
+      cursor: pointer;
+    }
+    #shareArea { margin-top:15px; }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+  <h1 id="start">게임 시작~!</h1>
+  <div id="game"></div>
+  <p id="timer">⏱️ 시간 : <span id="time">0.00</span>초</p>
+  <p id="best">🌟 최고 기록 없음</p>
+  <p id="recent">📋 최근 기록 없음</p>
+  <p id="rank">📈 순위: -</p>
+
+  <div>
+    <button onclick="resetBest()">기록 초기화</button>
+  </div>
+
+  <div id="shareArea">
+    <button onclick="shareRecord()">공유하기</button>
+    <button onclick="copyToClipboard()">기록 복사</button>
+  </div>
+
+  <p id="notice">※ 기록은 이 브라우저에 자동 저장됩니다.</p>
+
+  <script>
+    let extraNumbers = [];
+    let current = 1;
+    let startTime;
+    let timerInterval;
+
+    const siteURL = "https://my-reaction-test.com";
+    const percentileMap = [
+      { time: 2.0, rank: "상위 5%" },
+      { time: 2.5, rank: "상위 10%" },
+      { time: 3.0, rank: "상위 25%" },
+      { time: 3.5, rank: "상위 40%" },
+      { time: 4.0, rank: "상위 60%" },
+      { time: 5.0, rank: "상위 80%" },
+      { time: 999, rank: "하위 20%" }
+    ];
+
+    function getPercentile(time) {
+      for (let entry of percentileMap) {
+        if (time <= entry.time) return entry.rank;
+      }
+      return "-";
+    }
+
+    function shuffle() {
+      const first = Array.from({length:25}, (_, i)=>i+1).sort(()=>Math.random()-0.5);
+      extraNumbers = Array.from({length:25}, (_, i)=>i+26).sort(()=>Math.random()-0.5);
+      return first;
+    }
+
+    function renderGame(nums) {
+      $("#game").empty();
+      nums.forEach(n => $("#game").append(`<div class='box'>${n}</div>`));
+    }
+
+    function updateTimer() {
+      if (startTime && current <= 50) {
+        const now = ((Date.now() - startTime)/1000).toFixed(2);
+        $("#time").text(now);
+      }
+    }
+
+    function updateBestAndRecent(time) {
+      const best = parseFloat(localStorage.getItem("bestScore"));
+      if (!best || time < best) {
+        localStorage.setItem("bestScore", time);
+        alert(`🏅 최고기록 갱신! 기록: ${time}초`);
+      } else {
+        alert(`기록: ${time}초`);
+      }
+
+      let recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      recent.unshift(time);
+      if (recent.length > 3) recent = recent.slice(0, 3);
+      localStorage.setItem("recentScores", JSON.stringify(recent));
+    }
+
+    function renderInfo() {
+      const best = localStorage.getItem("bestScore");
+      const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      $("#best").text(best ? `🌟 내 최고기록: ${best}초` : "🌟 최고 기록 없음");
+      $("#recent").text(recent.length ? `📋 최근 기록: ${recent.join("초 / ")}초` : "📋 최근 기록 없음");
+      if (recent.length) {
+        const rank = getPercentile(parseFloat(recent[0]));
+        $("#rank").text(`📈 순위: ${rank}`);
+      } else {
+        $("#rank").text(`📈 순위: -`);
+      }
+    }
+
+    function resetBest() {
+      localStorage.removeItem("bestScore");
+      localStorage.removeItem("recentScores");
+      alert("기록이 초기화되었습니다.");
+      renderInfo();
+    }
+
+    function shareRecord() {
+      const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      if (!recent.length) {
+        alert("공유할 기록이 없습니다.");
+        return;
+      }
+      const msg = `내 반응속도 기록: ${recent[0]}초! 너도 해봐 👉 ${siteURL}`;
+      if (navigator.share) {
+        navigator.share({
+          title: "반응속도 테스트",
+          text: msg,
+          url: siteURL
+        });
+      } else {
+        alert("이 브라우저에서는 공유 기능을 지원하지 않습니다.\n대신 복사 버튼을 눌러보세요!");
+      }
+    }
+
+    function copyToClipboard() {
+      const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      if (!recent.length) {
+        alert("복사할 기록이 없습니다.");
+        return;
+      }
+      const msg = `내 반응속도 기록: ${recent[0]}초! 너도 해봐 👉 ${siteURL}`;
+      navigator.clipboard.writeText(msg).then(() => {
+        alert("기록이 복사되었습니다!");
+      }, () => {
+        alert("복사에 실패했어요 😢");
+      });
+    }
+
+    $(function(){
+      $("#start").click(function(){
+        const first = shuffle();
+        renderGame(first);
+        current = 1;
+        startTime = Date.now();
+        $("#time").text("0.00");
+        $(this).hide();
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 100);
+      });
+
+      $("#game").on("click", ".box", function(){
+        const val = Number($(this).text());
+        if (val === current) {
+          current++;
+          if (val <= 25) {
+            const next = extraNumbers.pop();
+            if (next) {
+              $(this).text(next);
+            } else {
+              $(this).text("").addClass("disappear").off("click");
+            }
+          } else {
+            $(this).text("").addClass("disappear").off("click");
+          }
+
+          if (current > 50) {
+            clearInterval(timerInterval);
+            const time = ((Date.now() - startTime) / 1000).toFixed(2);
+            $("#time").text(time);
+            updateBestAndRecent(parseFloat(time));
+            renderInfo();
+            $("#start").show().text("재도전");
+          }
+        }
+      });
+
+      renderInfo();
+    });
+  </script>
+
+</body>
+</html>
