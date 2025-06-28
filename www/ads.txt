@@ -1,8 +1,1 @@
-google.com, pub-5852902201107089, DIRECT, f08c47fec0942fa0
-<<<<<<< HEAD
-=======
-
-git add www/ads.txt
-git commit -m "Add ads.txt inside www"
-git push
->>>>>>> c9c9a29 (첫 커밋: reaction-time 프로젝트 초기화)
+google.com, pub-5852902201107089, DIRECT,F08c47fec0942fa0
