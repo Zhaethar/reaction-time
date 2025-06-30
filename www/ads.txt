@@ -1,1 +1,7 @@
-google.com, pub-5852902201107089, DIRECT,F08c47fec0942fa0
+HEAD
+google.com, pub-5852902201107089, DIRECT, f08c47fec0942fa0
+
+git add www/ads.txt
+git commit -m "Add ads.txt inside www"
+git push
+ 8169d88 (Add reaining pages and config file)
