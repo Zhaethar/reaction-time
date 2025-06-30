@@ -2,201 +2,103 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <title>ClickHero - 반응속도 테스트</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClickHero</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
+    body {
+      margin: 0; padding: 0;
       font-family: Arial, sans-serif;
       background: #f9f9f9;
-    }
-    body {
-      display: flex;
-      flex-direction: column;
-    }
-    nav {
-      background: #333;
-      padding: 15px 0;
-      text-align: center;
-    }
-    nav a {
-      color: #fff;
-      margin: 0 15px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    main {
-      flex: 1;
-      padding: 20px;
-      text-align: center;
-    }
-    #game {
-      width: 400px;
-      margin: 20px auto;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-    }
-    .box {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #8eca67;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      font-weight: bold;
-      border-radius: 10px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .disabled {
-      background: #ccc;
-      color: #999;
-      pointer-events: none;
+      display: flex; flex-direction: column; align-items: center;
     }
     #start {
-      cursor: pointer;
-      background: #4CAF50;
-      color: white;
-      font-size: 16px;
+      background: #4CAF50; color: #fff;
       font-weight: bold;
-      padding: 10px 20px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      margin: 30px 0;
+      cursor: pointer;
+    }
+    #game {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 10px;
+    }
+    .cell {
+      position: relative;
+      width: 60px; height: 60px;
+    }
+    .box {
+      position: absolute;
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 20px;
       border-radius: 10px;
-      margin-top: 30px;
+      user-select: none;
     }
-    .stats {
-      margin-top: 30px;
-      font-size: 14px;
-      line-height: 1.6;
+    .upper {
+      background: #8eca67;
+      z-index: 2;
+      cursor: pointer;
     }
+    .lower {
+      background: #ccc;
+      color: #333;
+      z-index: 1;
+    }
+    #timer { margin: 20px; font-size: 18px; }
   </style>
 </head>
 <body>
-  <nav>
-    <a href="/about.html">소개</a>
-    <a href="/contact.html">문의</a>
-    <a href="/privacy.html">개인정보</a>
-  </nav>
-
-  <main>
-    <h1 id="start">게임 시작!</h1>
-    <div id="game"></div>
-    <p>시간: <span id="time">0.00</span>초</p>
-
-    <div class="stats">
-      🕓 최근 기록: <span id="recent">--</span><br />
-      🥇 최고 기록: <span id="best">--</span><br />
-      📊 상위 등급: <span id="percent">--</span><br />
-    </div>
-  </main>
-
-  <footer style="text-align:center; padding:20px; background:#eee; font-size:14px;">
-    © 2025 ClickHero |
-    <a href="/about.html">소개</a> |
-    <a href="/contact.html">문의</a> |
-    <a href="/privacy.html">개인정보</a>
-  </footer>
+  <h1 id="start">게임 시작!</h1>
+  <div id="timer">시간: <span id="time">0.00</span>초</div>
+  <div id="game"></div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    let current = 1, startTime, timerInterval;
-    let numbers = [], nextNumbers = [];
+    let startTime, interval, current = 1;
+    let upperNums = [], lowerNums = [];
 
     function shuffle(arr) {
       return arr.sort(() => Math.random() - 0.5);
     }
 
-    function updateTimer() {
-      const now = ((Date.now() - startTime) / 1000).toFixed(2);
-      $("#time").text(now);
-    }
-
     function startGame() {
       current = 1;
       $("#game").empty();
-      numbers = shuffle(Array.from({length:25}, (_,i) => i+1));
-      nextNumbers = shuffle(Array.from({length:25}, (_,i) => i+26));
+      upperNums = shuffle([...Array(25)].map((_,i)=>i+1));
+      lowerNums = shuffle([...Array(25)].map((_,i)=>i+26));
 
       for (let i = 0; i < 25; i++) {
-        $("#game").append(`<div class="box" data-index="${i}">${numbers[i]}</div>`);
+        const cell = $("<div>").addClass("cell");
+        const lower = $("<div>").addClass("box lower").text(lowerNums[i]);
+        const upper = $("<div>").addClass("box upper").text(upperNums[i]);
+        cell.append(lower).append(upper);
+        $("#game").append(cell);
       }
 
       startTime = Date.now();
-      clearInterval(timerInterval);
-      timerInterval = setInterval(updateTimer, 50);
+      clearInterval(interval);
+      interval = setInterval(() => {
+        const t = ((Date.now() - startTime)/1000).toFixed(2);
+        $("#time").text(t);
+      }, 50);
     }
 
-    function endGame() {
-      clearInterval(timerInterval);
-      const time = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
-      const best = parseFloat(localStorage.getItem("bestScore"));
-
-      if (!best || time < best) {
-        localStorage.setItem("bestScore", time);
-        alert(`🏅 최고기록 갱신! ${time}초`);
-      } else {
-        alert(`기록: ${time}초`);
-      }
-
-      let recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
-      recent.unshift(time);
-      if (recent.length > 3) recent = recent.slice(0,3);
-      localStorage.setItem("recentScores", JSON.stringify(recent));
-      renderStats();
-    }
-
-    function getPercentile(time) {
-      const map = [
-        { t: 2.0, rank: "상위 5%" },
-        { t: 2.5, rank: "상위 10%" },
-        { t: 3.0, rank: "상위 25%" },
-        { t: 3.5, rank: "상위 40%" },
-        { t: 4.0, rank: "상위 60%" },
-        { t: 5.0, rank: "상위 80%" },
-        { t: 999, rank: "하위 20%" }
-      ];
-      return map.find(x => time <= x.t)?.rank || "--";
-    }
-
-    function renderStats() {
-      const best = localStorage.getItem("bestScore");
-      const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
-      const rank = recent[0] ? getPercentile(parseFloat(recent[0])) : "--";
-      $("#best").text(best || "--");
-      $("#recent").text(recent[0] || "--");
-      $("#percent").text(rank);
-    }
-
-    $(function(){
-      renderStats();
-
-      $("#start").click(() => startGame());
-
-      $("#game").on("click", ".box", function(){
-        const num = parseInt($(this).text());
-        if (num === current) {
-          if (current === 50) {
-            $(this).addClass("disabled");
-            endGame();
-            return;
-          }
-
-          $(this).addClass("disabled");
-          const index = $(this).data("index");
-
-          if (current >= 26 && current < 50) {
-            const next = nextNumbers[current - 26];
-            $(this).text(next).removeClass("disabled");
-          } else {
-            $(this).text("").removeClass("disabled").css("background", "#eee");
-          }
-
-          current++;
+    $(document).on("click", ".upper", function() {
+      const num = parseInt($(this).text());
+      if (num === current) {
+        $(this).remove();
+        current++;
+        if (current > 50) {
+          clearInterval(interval);
+          const total = ((Date.now() - startTime)/1000).toFixed(2);
+          alert(`🎉 완료! 기록: ${total}초`);
         }
-      });
+      }
     });
+
+    $("#start").click(startGame);
   </script>
 </body>
 </html>
