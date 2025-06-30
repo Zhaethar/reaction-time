@@ -4,14 +4,11 @@
   <meta charset="utf-8" />
   <title>ClickHero - 반응속도 테스트</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>⚡</text></svg>">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     html, body {
       height: 100%;
-      min-height: 100vh;
       margin: 0;
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
       background: #f9f9f9;
     }
     body {
@@ -37,17 +34,17 @@
     #game {
       width: 400px;
       margin: 20px auto;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
       gap: 10px;
-      justify-content: center;
     }
     .box {
-      width: 60px;
-      height: 70px;
-      line-height: 70px;
+      width: 100%;
+      aspect-ratio: 1 / 1;
       background: #8eca67;
-      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 20px;
       font-weight: bold;
       border-radius: 10px;
@@ -55,45 +52,24 @@
       user-select: none;
     }
     .disabled {
-      background: #eee !important;
-      color: #aaa !important;
+      background: #ccc;
+      color: #999;
       pointer-events: none;
     }
     #start {
       cursor: pointer;
-      color: #fff;
       background: #4CAF50;
-      display: inline-block;
-      padding: 10px 20px;
-      margin: 40px auto 20px;
-      border-radius: 10px;
+      color: white;
       font-size: 16px;
       font-weight: bold;
-    }
-    .stats {
-      font-size: 16px;
+      padding: 10px 20px;
+      border-radius: 10px;
       margin-top: 30px;
     }
-    .share-btn {
-      margin-top: 10px;
-      background: #3b5998;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    footer {
-      padding: 20px;
+    .stats {
+      margin-top: 30px;
       font-size: 14px;
-      color: #666;
-      background: #f1f1f1;
-      text-align: center;
-    }
-    footer a {
-      color: #666;
-      text-decoration: none;
-      margin: 0 10px;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -105,47 +81,70 @@
   </nav>
 
   <main>
-    <h1 id="start">게임 시작~!</h1>
+    <h1 id="start">게임 시작!</h1>
     <div id="game"></div>
-    <p id="timer">시간: <span id="time">0.00</span>초</p>
+    <p>시간: <span id="time">0.00</span>초</p>
 
     <div class="stats">
-      🕓 최근 기록: <span id="recent">--</span>초<br />
-      🥇 최고 기록: <span id="best">--</span>초<br />
-      📊 당신은 상위 <span id="percent">--</span>% 안에 들어요!<br />
-      <button class="share-btn" onclick="copyResult()">기록 공유하기</button>
+      🕓 최근 기록: <span id="recent">--</span><br />
+      🥇 최고 기록: <span id="best">--</span><br />
+      📊 상위 등급: <span id="percent">--</span><br />
     </div>
-
-    <p id="notice">‼️ 기록은 이 브라우저에 자동 저장됩니다.</p>
   </main>
 
-  <footer>
+  <footer style="text-align:center; padding:20px; background:#eee; font-size:14px;">
     © 2025 ClickHero |
     <a href="/about.html">소개</a> |
     <a href="/contact.html">문의</a> |
     <a href="/privacy.html">개인정보</a>
   </footer>
 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    let current = 1, startTime, timerInterval, extraNumbers = [];
-    const siteURL = "https://clickhero.online";
+    let current = 1, startTime, timerInterval;
+    let numbers = [], nextNumbers = [];
 
-    function shuffle() {
-      const first = Array.from({ length: 25 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-      extraNumbers = Array.from({ length: 25 }, (_, i) => i + 26).sort(() => Math.random() - 0.5);
-      return first;
-    }
-
-    function renderGame(numbers) {
-      const $game = $("#game").empty();
-      numbers.forEach(n => $game.append(`<div class="box">${n}</div>`));
+    function shuffle(arr) {
+      return arr.sort(() => Math.random() - 0.5);
     }
 
     function updateTimer() {
-      if (startTime && current <= 50) {
-        const t = ((Date.now() - startTime) / 1000).toFixed(2);
-        $("#time").text(t);
+      const now = ((Date.now() - startTime) / 1000).toFixed(2);
+      $("#time").text(now);
+    }
+
+    function startGame() {
+      current = 1;
+      $("#game").empty();
+      numbers = shuffle(Array.from({length:25}, (_,i) => i+1));
+      nextNumbers = shuffle(Array.from({length:25}, (_,i) => i+26));
+
+      for (let i = 0; i < 25; i++) {
+        $("#game").append(`<div class="box" data-index="${i}">${numbers[i]}</div>`);
       }
+
+      startTime = Date.now();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 50);
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      const time = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+      const best = parseFloat(localStorage.getItem("bestScore"));
+
+      if (!best || time < best) {
+        localStorage.setItem("bestScore", time);
+        alert(`🏅 최고기록 갱신! ${time}초`);
+      } else {
+        alert(`기록: ${time}초`);
+      }
+
+      let recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      recent.unshift(time);
+      if (recent.length > 3) recent = recent.slice(0,3);
+      localStorage.setItem("recentScores", JSON.stringify(recent));
+      renderStats();
     }
 
     function getPercentile(time) {
@@ -158,68 +157,43 @@
         { t: 5.0, rank: "상위 80%" },
         { t: 999, rank: "하위 20%" }
       ];
-      return map.find(x => time <= x.t)?.rank || "-";
+      return map.find(x => time <= x.t)?.rank || "--";
     }
 
-    function updateBestAndRecent(time) {
-      const best = parseFloat(localStorage.getItem("bestScore"));
-      if (!best || time < best) {
-        localStorage.setItem("bestScore", time);
-        alert(`🏅 최고기록 갱신! 기록: ${time}초`);
-      } else {
-        alert(`기록: ${time}초`);
-      }
-      let recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
-      recent.unshift(time);
-      if (recent.length > 3) recent = recent.slice(0, 3);
-      localStorage.setItem("recentScores", JSON.stringify(recent));
-    }
-
-    function renderInfo() {
+    function renderStats() {
       const best = localStorage.getItem("bestScore");
       const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      const rank = recent[0] ? getPercentile(parseFloat(recent[0])) : "--";
       $("#best").text(best || "--");
       $("#recent").text(recent[0] || "--");
-      $("#percent").text(recent.length ? getPercentile(parseFloat(recent[0])) : "--");
+      $("#percent").text(rank);
     }
 
-    function copyResult() {
-      const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
-      if (!recent.length) return alert("공유할 기록이 없습니다.");
-      const msg = `내 반응속도 기록: ${recent[0]}초! 너도 해봐 👉 ${siteURL}`;
-      navigator.clipboard.writeText(msg).then(() => alert("기록이 복사되었습니다!"));
-    }
+    $(function(){
+      renderStats();
 
-    $(function () {
-      renderInfo();
-      let numbers = shuffle();
-      renderGame(numbers);
+      $("#start").click(() => startGame());
 
-      $("#start").click(() => {
-        current = 1;
-        numbers = shuffle();
-        renderGame(numbers);
-        startTime = Date.now();
-        clearInterval(timerInterval);
-        timerInterval = setInterval(updateTimer, 50);
-      });
-
-      $("#game").on("click", ".box", function () {
+      $("#game").on("click", ".box", function(){
         const num = parseInt($(this).text());
         if (num === current) {
-          $(this).addClass("disabled");
           if (current === 50) {
-            clearInterval(timerInterval);
-            const time = ((Date.now() - startTime) / 1000).toFixed(2);
-            updateBestAndRecent(parseFloat(time));
-            renderInfo();
-          } else {
-            current++;
-            if (current > 25 && current <= 50) {
-              const next = extraNumbers[current - 26];
-              $("#game").append(`<div class="box">${next}</div>`);
-            }
+            $(this).addClass("disabled");
+            endGame();
+            return;
           }
+
+          $(this).addClass("disabled");
+          const index = $(this).data("index");
+
+          if (current >= 26 && current < 50) {
+            const next = nextNumbers[current - 26];
+            $(this).text(next).removeClass("disabled");
+          } else {
+            $(this).text("").removeClass("disabled").css("background", "#eee");
+          }
+
+          current++;
         }
       });
     });
