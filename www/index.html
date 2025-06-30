@@ -9,12 +9,25 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5852902201107089" crossorigin="anonymous"></script>
 
   <style>
+ HEAD
     html, body {
       height: 100%;
       margin: 0;
       font-family: 'Arial', sans-serif;
       background: #f9f9f9;
     }
+
+  html, body {
+  height: 100%;
+  min-height: 100vh;  /* 👈 이 줄 추가! */
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background: #f9f9f9;
+}
+
+
+ 94e95e4 (Fix: add min-height to ensure footer sticks to bottom)
     body {
       display: flex;
       flex-direction: column;
