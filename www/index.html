@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>⚡</text></svg>">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5852902201107089" crossorigin="anonymous"></script>
   <style>
     html, body {
       height: 100%;
@@ -55,11 +54,10 @@
       cursor: pointer;
       user-select: none;
     }
-    .disappear { visibility: hidden; }
     .disabled {
       background: #eee !important;
-      color: #ccc !important;
-      cursor: default;
+      color: #aaa !important;
+      pointer-events: none;
     }
     #start {
       cursor: pointer;
@@ -74,7 +72,6 @@
     }
     .stats {
       font-size: 16px;
-      line-height: 1.6;
       margin-top: 30px;
     }
     .share-btn {
@@ -98,9 +95,6 @@
       text-decoration: none;
       margin: 0 10px;
     }
-    footer a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
@@ -122,7 +116,6 @@
       <button class="share-btn" onclick="copyResult()">기록 공유하기</button>
     </div>
 
-    <div id="shareArea"></div>
     <p id="notice">‼️ 기록은 이 브라우저에 자동 저장됩니다.</p>
   </main>
 
@@ -134,25 +127,8 @@
   </footer>
 
   <script>
-    let extraNumbers = [], current = 1, startTime, timerInterval;
+    let current = 1, startTime, timerInterval, extraNumbers = [];
     const siteURL = "https://clickhero.online";
-
-    const percentileMap = [
-      { time: 2.0, rank: "상위 5%" },
-      { time: 2.5, rank: "상위 10%" },
-      { time: 3.0, rank: "상위 25%" },
-      { time: 3.5, rank: "상위 40%" },
-      { time: 4.0, rank: "상위 60%" },
-      { time: 5.0, rank: "상위 80%" },
-      { time: 999, rank: "하위 20%" }
-    ];
-
-    function getPercentile(time) {
-      for (let entry of percentileMap) {
-        if (time <= entry.time) return entry.rank;
-      }
-      return "-";
-    }
 
     function shuffle() {
       const first = Array.from({ length: 25 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
@@ -160,16 +136,29 @@
       return first;
     }
 
-    function renderGame(nums) {
-      $("#game").empty();
-      nums.forEach(n => $("#game").append(`<div class='box'>${n}</div>`));
+    function renderGame(numbers) {
+      const $game = $("#game").empty();
+      numbers.forEach(n => $game.append(`<div class="box">${n}</div>`));
     }
 
     function updateTimer() {
       if (startTime && current <= 50) {
-        const now = ((Date.now() - startTime) / 1000).toFixed(2);
-        $("#time").text(now);
+        const t = ((Date.now() - startTime) / 1000).toFixed(2);
+        $("#time").text(t);
       }
+    }
+
+    function getPercentile(time) {
+      const map = [
+        { t: 2.0, rank: "상위 5%" },
+        { t: 2.5, rank: "상위 10%" },
+        { t: 3.0, rank: "상위 25%" },
+        { t: 3.5, rank: "상위 40%" },
+        { t: 4.0, rank: "상위 60%" },
+        { t: 5.0, rank: "상위 80%" },
+        { t: 999, rank: "하위 20%" }
+      ];
+      return map.find(x => time <= x.t)?.rank || "-";
     }
 
     function updateBestAndRecent(time) {
@@ -189,43 +178,27 @@
     function renderInfo() {
       const best = localStorage.getItem("bestScore");
       const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
-      $("#best").text(best ? `${best}` : "--");
-      $("#recent").text(recent.length ? recent[0] : "--");
-      const rank = recent.length ? getPercentile(parseFloat(recent[0])) : "--";
-      $("#percent").text(rank);
-    }
-
-    function resetBest() {
-      localStorage.removeItem("bestScore");
-      localStorage.removeItem("recentScores");
-      alert("기록이 초기화되었습니다.");
-      renderInfo();
+      $("#best").text(best || "--");
+      $("#recent").text(recent[0] || "--");
+      $("#percent").text(recent.length ? getPercentile(parseFloat(recent[0])) : "--");
     }
 
     function copyResult() {
       const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
-      if (!recent.length) {
-        alert("공유할 기록이 없습니다.");
-        return;
-      }
+      if (!recent.length) return alert("공유할 기록이 없습니다.");
       const msg = `내 반응속도 기록: ${recent[0]}초! 너도 해봐 👉 ${siteURL}`;
-      navigator.clipboard.writeText(msg).then(() => {
-        alert("기록이 복사되었습니다!");
-      }, () => {
-        alert("복사에 실패했어요 😢");
-      });
+      navigator.clipboard.writeText(msg).then(() => alert("기록이 복사되었습니다!"));
     }
 
-    // 초기 실행
     $(function () {
       renderInfo();
-      let nums = shuffle();
-      renderGame(nums);
+      let numbers = shuffle();
+      renderGame(numbers);
 
       $("#start").click(() => {
         current = 1;
-        nums = shuffle();
-        renderGame(nums);
+        numbers = shuffle();
+        renderGame(numbers);
         startTime = Date.now();
         clearInterval(timerInterval);
         timerInterval = setInterval(updateTimer, 50);
@@ -234,13 +207,18 @@
       $("#game").on("click", ".box", function () {
         const num = parseInt($(this).text());
         if (num === current) {
+          $(this).addClass("disabled");
           if (current === 50) {
             clearInterval(timerInterval);
             const time = ((Date.now() - startTime) / 1000).toFixed(2);
             updateBestAndRecent(parseFloat(time));
             renderInfo();
-                     const next = extraNumbers[current - 26];
-            $("#game").append(`<div class='box'>${next}</div>`);
+          } else {
+            current++;
+            if (current > 25 && current <= 50) {
+              const next = extraNumbers[current - 26];
+              $("#game").append(`<div class="box">${next}</div>`);
+            }
           }
         }
       });
