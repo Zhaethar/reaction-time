@@ -21,6 +21,7 @@
     nav {
       background: #333;
       padding: 15px 0;
+      text-align: center;
     }
 
     nav a {
@@ -28,6 +29,12 @@
       margin: 0 15px;
       text-decoration: none;
       font-weight: bold;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
     }
 
     h1 {
@@ -40,6 +47,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      justify-content: center;
     }
 
     .box {
@@ -68,7 +76,6 @@
     #timer {
       font-size: 18px;
       margin-top: 10px;
-      text-align: center;
     }
 
     #start {
@@ -84,10 +91,9 @@
     }
 
     .stats {
-      text-align: center;
       font-size: 16px;
       line-height: 1.6;
-      margin-bottom: 30px;
+      margin-top: 30px;
     }
 
     .share-btn {
@@ -101,7 +107,6 @@
     }
 
     footer {
-      margin-top: auto;
       padding: 20px;
       font-size: 14px;
       color: #666;
@@ -126,22 +131,27 @@
   <nav>
     <a href="about.html">소개</a>
     <a href="contact.html">문의</a>
-    <a href="privacy.html">개인정보처리방침</a>
+    <a href="privacy.html">개인정보</a>
   </nav>
 
-  <h1 id="start">게임 시작~!</h1>
-  <div id="game"></div>
-  <p id="timer">시간: <span id="time">0.00</span>초</p>
+  <main style="flex: 1;">
+    <h1 id="start">게임 시작~!</h1>
+    <div id="game"></div>
+    <p id="timer">시간: <span id="time">0.00</span>초</p>
 
-  <div class="stats">
-    🕓 최근 기록: <span id="recent">--</span>초<br />
-    🥇 최고 기록: <span id="best">--</span>초<br />
-    📊 당신은 상위 <span id="percent">--</span>% 안에 들어요!<br />
-    <button class="share-btn" onclick="copyResult()">기록 공유하기</button>
-  </div>
+    <div class="stats">
+      🕓 최근 기록: <span id="recent">--</span>초<br />
+      🥇 최고 기록: <span id="best">--</span>초<br />
+      📊 당신은 상위 <span id="percent">--</span>% 안에 들어요!<br />
+      <button class="share-btn" onclick="copyResult()">기록 공유하기</button>
+    </div>
+  </main>
 
   <footer>
-    © 2025 ClickHero | <a href="about.html">소개</a> | <a href="contact.html">문의</a> | <a href="privacy.html">개인정보</a>
+    © 2025 ClickHero |
+    <a href="about.html">소개</a> |
+    <a href="contact.html">문의</a> |
+    <a href="privacy.html">개인정보</a>
   </footer>
 
   <script>
@@ -224,6 +234,5 @@
       }, 100);
     });
   </script>
-
 </body>
 </html>
