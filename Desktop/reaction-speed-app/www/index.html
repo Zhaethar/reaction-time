@@ -1,133 +1,214 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<title>반응속도 테스트</title>
- <link rel="stylesheet" href="style.css">
-
-
-
-<style>
-	body { font-family:'Arial'; text-align:center; background:#f9f9f9; }
-	#game { width:400px; margin:20px auto; display:flex; flex-wrap:wrap; gap:10px; }
-	.box { width:60px; height:70px; line-height:70px; background:  #8eca67; color:#333; font-size:20px; font-weight:bold; border-radius:10px; cursor:pointer; user-select:none; }
-	 .disappear {
-      visibility: hidden; /* 박스도 사라진 듯 보이지만 위치 유지됨 */
+  <meta charset="utf-8" />
+  <title>ClickHero</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5852902201107089"
+     crossorigin="anonymous"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      text-align: center;
     }
-    .disabled {
-      background: #eee !important;
-      color: #ccc !important;
-      cursor: default;
+    #start {
+      margin: 30px;
+      padding: 12px 24px;
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
     }
-	
-	#timer { font-size:18px; margin-top:10px; }
-	#start { cursor:pointer; color:#fff; background:#ff5f7e; display:inline-block; padding:10px 20px; margin-top:40px; border-radius:10px; }
-</style>
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	</head>
-	<body>
+    #game {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 10px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .cell {
+      position: relative;
+      width: 60px;
+      height: 60px;
+    }
+    .box {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 10px;
+      background: #8eca67;
+      color: #333;
+      user-select: none;
+        cursor: pointer;
+    }
+    .upper {
+      z-index: 2;
+      cursor: pointer;
+    }
+    .lower {
+      z-index: 1;
+    }
+    #timer, .stats {
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .share-btn {
+      margin-top: 10px;
+      background: #3b5998;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      font-size: 14px;
+      background: #f1f1f1;
+      color: #666;
+    }
+    footer a {
+      color: #666;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+    footer a.blue {
+      color: #0078D4;
+      font-weight: bold;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="start">게임 시작!</h1>
+  <div id="timer">시간: <span id="time">0.00</span>초</div>
+  <div id="game"></div>
+  <div class="stats">
+    🕓 최근 기록: <span id="recent">--</span><br>
+    🥇 최고 기록: <span id="best">--</span><br>
+    📊 당신은 상위 <span id="percent">--</span><br>
+    <button class="share-btn" onclick="copyResult()">기록 공유하기</button>
+    <ins class="adsbygoogle"
+     style="display:block; text-align:center; margin-top:20px;"
+     data-ad-client="ca-pub-5852902201107089"
+     data-ad-slot="1234567890"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 
-	<h1 id="start">게임 시작~!</h1>
-	<div id = "game"></div>
-	<p id="timer"> 시간 : <span id="time">0.00</span>초</p>
-	<script src="script.js"></script>
+  </div>
 
-	<script>
-	let numbers=[];
-	let current=1;
-	let startTime;
-	
-	  function shuffle() {
-      const first25 = [];
-      for (let i = 1; i <= 25; i++) {
-        first25.push(i);
+  <footer>
+    © 2025 ClickHero |
+    <a href="/about.html" class="blue">소개</a> |
+    <a href="/contact.html" class="blue">이용약관</a> |
+    <a href="/privacy.html">개인정보</a>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    let current = 1, startTime, interval;
+    const game = $("#game"), siteURL = "https://clickhero.online";
+
+    const percentMap = [
+      { t: 2.0, rank: "상위 5%" },
+      { t: 2.5, rank: "상위 10%" },
+      { t: 3.0, rank: "상위 25%" },
+      { t: 3.5, rank: "상위 40%" },
+      { t: 4.0, rank: "상위 60%" },
+      { t: 5.0, rank: "상위 80%" },
+      { t: 999, rank: "하위 20%" }
+    ];
+
+    function getPercent(t) {
+      return percentMap.find(x => t <= x.t)?.rank || "--";
+    }
+
+    function shuffle(arr) {
+      return arr.sort(() => Math.random() - 0.5);
+    }
+
+    function updateTimer() {
+      const t = ((Date.now() - startTime)/1000).toFixed(2);
+      $("#time").text(t);
+    }
+
+    function startGame() {
+      current = 1;
+      game.empty();
+
+      const top = shuffle(Array.from({length:25}, (_,i)=>i+1));
+      const bottom = shuffle(Array.from({length:25}, (_,i)=>i+26));
+
+      for (let i = 0; i < 25; i++) {
+        const cell = $("<div>").addClass("cell");
+        const lower = $("<div>").addClass("box lower").text(bottom[i]);
+        const upper = $("<div>").addClass("box upper").text(top[i]);
+        cell.append(lower).append(upper);
+        game.append(cell);
       }
-      extraNumbers = [];
-      for (let i = 26; i <= 50; i++) {
-        extraNumbers.push(i);
-      }
-     
-      // 둘 다 각각 섞기
-      first25.sort(() => Math.random() - 0.5);
-      extraNumbers.sort(() => Math.random() - 0.5);
-      return first25;
+
+      startTime = Date.now();
+      clearInterval(interval);
+      interval = setInterval(updateTimer, 50);
     }
 
-    function renderGame(firstNumbers) {
-      $("#game").empty();
-      for (let i = 0; i < firstNumbers.length; i++) {
-        $("#game").append(`<div class='box'>${firstNumbers[i]}</div>`);
-      }
-    }
-	
-	$(function(){
-	$("#start").click(function(){
-const firstNumbers = shuffle();
-        renderGame(firstNumbers);
-        current = 1;
-        startTime = Date.now();
-        $("#time").text("0.00");
-        $("#start").hide();
-      });
-
-    $("#game").on("click", ".box", function () {
-        const val = Number($(this).text());
-        if (val === current) {
-          current++;
-
-          if (val <= 25) {
-            if (extraNumbers.length > 0) {
-              const next = extraNumbers.pop();
-              $(this).text(next);
-            } else {
-              $(this).text("").addClass("disabled").off("click");
-            }
-          } else {
-            // 26 이상이면 박스와 숫자 모두 안 보이게 하고 클릭 비활성화
-            $(this).text("").addClass("disappear").off("click");
-          }
-
-          if (current > 50) {
-            const end = Date.now();
-            const time = ((end - startTime) / 1000).toFixed(2);
-            $("#time").text(time);
-            alert(`끝! 기록 : ${time}초`);
-            $("#start").show().text("재도전");
-          }
+    $(document).on("click", ".box", function(){
+      const num = parseInt($(this).text());
+      if (num === current) {
+        $(this).remove();
+        current++;
+        if (current > 50) {
+          clearInterval(interval);
+          const t = ((Date.now() - startTime)/1000).toFixed(2);
+          saveScore(parseFloat(t));
         }
-      });
-	
-	setInterval(() => {
-	if (startTime && current <= 50) {
-		const now = ((Date.now() - startTime)/1000).toFixed(2);
-		$("#time").text(now);
-	}
-	}, 100);
-	});
-	</script>
+      }
+    });
 
+    function saveScore(time) {
+      alert(`🎉 완료! 기록: ${time}초`);
+      const best = parseFloat(localStorage.getItem("bestScore"));
+      if (!best || time < best) localStorage.setItem("bestScore", time);
+
+      let recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      recent.unshift(time);
+      if (recent.length > 3) recent = recent.slice(0,3);
+      localStorage.setItem("recentScores", JSON.stringify(recent));
+      renderInfo();
+    }
+
+    function renderInfo() {
+      const best = localStorage.getItem("bestScore");
+      const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      $("#best").text(best || "--");
+      $("#recent").text(recent[0] || "--");
+      $("#percent").text(recent[0] ? getPercent(parseFloat(recent[0])) : "--");
+    }
+
+    function copyResult() {
+      const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
+      if (!recent.length) return alert("공유할 기록이 없습니다.");
+      const msg = `내 반응속도 기록: ${recent[0]}초! 너도 해봐 👉 ${siteURL}`;
+      navigator.clipboard.writeText(msg).then(() => alert("기록이 복사되었습니다!"));
+    }
+
+    $("#start").click(() => { startGame(); });
+    $(function(){ renderInfo(); });
+  </script>
 </body>
-<script src="main.js"></script>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
