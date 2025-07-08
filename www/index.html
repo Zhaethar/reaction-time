@@ -46,11 +46,10 @@
       background: #8eca67;
       color: #333;
       user-select: none;
-        cursor: pointer;
+      cursor: pointer;
     }
     .upper {
       z-index: 2;
-      cursor: pointer;
     }
     .lower {
       z-index: 1;
@@ -87,9 +86,59 @@
     footer a:hover {
       text-decoration: underline;
     }
+
+    /* 팝업 스타일 */
+    #popup {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .popup-box {
+      background: #fff;
+      padding: 30px 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      text-align: left;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .popup-box h2 {
+      margin-top: 0;
+      color: #4CAF50;
+    }
+    .popup-box button {
+      margin-top: 20px;
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+
+  <!-- 설명 팝업 -->
+  <div id="popup">
+    <div class="popup-box">
+      <h2>📘 ClickHero란?</h2>
+      <p>1부터 50까지 숫자를 <strong>순서대로 클릭</strong>해 반응속도를 측정하는 게임입니다.</p>
+      <ul>
+        <li>숫자가 겹쳐 있으면 <strong>위쪽 숫자부터</strong> 클릭해 주세요.</li>
+        <li>기록은 저장되며, 당신의 상위 퍼센트가 표시됩니다.</li>
+      </ul>
+      <p>광고는 사이트 운영 비용을 충당하기 위한 최소한의 수익입니다 🙏</p>
+      <button onclick="closePopup()">확인했어요</button>
+    </div>
+  </div>
+
   <h1 id="start">게임 시작!</h1>
   <div id="timer">시간: <span id="time">0.00</span>초</div>
   <div id="game"></div>
@@ -104,14 +153,17 @@
     © 2025 ClickHero |
     <a href="/about.html" class="blue">소개</a> |
     <a href="/contact.html" class="blue">이용약관</a> |
-    <a href="/privacy.html">개인정보</a>
+    <a href="/privacy.html">개인정보</a> |
     <a href="/tips.html">반응속도 팁</a> |
     <a href="/faq.html">FAQ</a>
-
   </footer>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
+    function closePopup() {
+      document.getElementById("popup").style.display = "none";
+    }
+
     let current = 1, startTime, interval;
     const game = $("#game"), siteURL = "https://clickhero.online";
 
@@ -194,12 +246,10 @@
     function copyResult() {
       const recent = JSON.parse(localStorage.getItem("recentScores") || "[]");
       if (!recent.length) return alert("공유할 기록이 없습니다.");
-      const msg = `내 반응속도 기록: ${recent[0]}초! 너도 해봐 👉 ${siteURL}`;
-      navigator.clipboard.writeText(msg).then(() => alert("기록이 복사되었습니다!"));
-    }
+      const msg = `내 반응속도 기록:  ${recent[0]}초! 너도 해봐 👉 ${siteURL}`;
+  navigator.clipboard.writeText(msg).then(() => alert("기록이 복사되었습니다!"));
+}
 
+  // 게임 시작 버튼 클릭 이벤트 연결
     $("#start").click(() => { startGame(); });
-    $(function(){ renderInfo(); });
   </script>
-</body>
-</html>
