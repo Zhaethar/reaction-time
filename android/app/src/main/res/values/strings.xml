@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ReactionSpeedApp</string>
+    <string name="title_activity_main">ReationSpeedApp</string>
+    <string name="package_name">com.example.reaction</string>
+    <string name="custom_url_scheme">com.example.reaction</string>
+</resources>
