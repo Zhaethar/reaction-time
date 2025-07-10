@@ -1,6 +1,8 @@
 ﻿<!doctype html>
 <html lang="ko">
 <head>
+
+
   <meta charset="utf-8" />
   <title>ClickHero - 반응속도 테스트</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -213,7 +215,17 @@
       $("#start").click();
     }
 
-    // 👇 게임 시작 이벤트 (카운트다운 포함)
+    function sendScoreToServer(time) {
+      fetch("/.netlify/functions/saveScore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ time })
+      })
+      .then(res => res.json())
+      .then(data => console.log("기록 서버 저장 완료:", data.message))
+      .catch(err => console.error("기록 서버 저장 실패:", err));
+    }
+
     $(function () {
       const best = localStorage.getItem("clickhero_best");
       if (best) $("#best").text(best);
@@ -225,7 +237,7 @@
         let count = 3;
         $("#countdown").text(count).css("display", "flex");
 
-               const timer = setInterval(() => {
+        const timer = setInterval(() => {
           count--;
           if (count === 0) {
             clearInterval(timer);
@@ -251,6 +263,7 @@
             const time = ((Date.now() - startTime) / 1000).toFixed(2);
             $("#time").text(time);
             updateStats(time);
+            sendScoreToServer(time);  // ✅ 여기서 서버로 기록 전송
             alert(`끝! 기록: ${time}초`);
             $("#start").text("재도전").show();
           }
@@ -274,5 +287,6 @@
       $("#time").text("0.00");
     }
   </script>
+
 </body>
 </html>
