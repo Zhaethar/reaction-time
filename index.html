@@ -129,6 +129,23 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+  <!-- 안내 모달 -->
+<div id="introModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); z-index:10000; display:flex; justify-content:center; align-items:center;">
+  <div style="background:#fff; padding:30px; border-radius:12px; max-width:600px; box-shadow:0 0 15px rgba(0,0,0,0.3); text-align:center;">
+    <h2>📢 ClickHero에 오신 걸 환영합니다!</h2>
+    <p style="margin:15px 0; font-size:16px;">
+      이 게임은 사용자의 <strong>시각적 반응속도를 테스트</strong>하여 집중력과 순발력을 향상시키는 데 도움을 줍니다.<br />
+      누구나 쉽게 즐길 수 있으며, 기록을 친구들과 공유할 수도 있어요.  
+      게임은 단순한 클릭 기반이며, <strong>광고 클릭을 유도하지 않습니다</strong>.
+    </p>
+    <p style="margin-bottom:20px; font-size:14px; color:#555;">
+      시작 버튼을 누르면 게임이 바로 시작되며, 기록은 로컬에 저장됩니다.  
+      이 웹사이트는 광고 네트워크의 정책을 준수하며 사용자 경험을 최우선으로 합니다.
+    </p>
+    <button onclick="document.getElementById('introModal').style.display='none';" style="padding:10px 20px; font-size:16px; background:#4CAF50; color:#fff; border:none; border-radius:8px; cursor:pointer;">게임 시작</button>
+  </div>
+</div>
+
 
   <nav>
     <a href="about.html">소개</a>
