@@ -1,3 +1,5 @@
+[functions]
+directory = ".netlify/functions"
+
 [build]
 publish = "www"
-command = "echo 'no build step'"
