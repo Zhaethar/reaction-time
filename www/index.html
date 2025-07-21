@@ -1,0 +1,278 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>ClickHero - 반응속도 테스트</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body {
+      height: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: #f9f9f9;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    nav {
+      background: #333;
+      padding: 15px 0;
+      text-align: center;
+    }
+    nav a {
+      color: #fff;
+      margin: 0 15px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    main {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 30px;
+    }
+    #game {
+      width: 400px;
+      margin: 20px auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .box {
+      width: 60px;
+      height: 70px;
+      line-height: 70px;
+      background: #8eca67;
+      color: #333;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .disappear {
+      visibility: hidden;
+    }
+    .disabled {
+      background: #eee !important;
+      color: #ccc !important;
+      cursor: default;
+    }
+    #timer {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    #start {
+      cursor: pointer;
+      color: #fff;
+      background: #4CAF50;
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 40px auto 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .stats {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-top: 30px;
+    }
+    .share-btn {
+      margin-top: 10px;
+      background: #3b5998;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    footer {
+      padding: 20px;
+      font-size: 14px;
+      color: #666;
+      background: #f1f1f1;
+      text-align: center;
+    }
+    footer a {
+      color: #666;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+  <!-- 안내 모달 -->
+  <div id="introModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); z-index:10000; display:flex; justify-content:center; align-items:center;">
+    <div style="background:#fff; padding:30px; border-radius:12px; max-width:600px; box-shadow:0 0 15px rgba(0,0,0,0.3); text-align:center;">
+      <h2>📢 ClickHero에 오신 걸 환영합니다!</h2>
+      <p style="margin:15px 0; font-size:16px;">
+        이 게임은 사용자의 <strong>시각적 반응속도를 테스트</strong>하여 집중력과 순발력을 향상시키는 데 도움을 줍니다.<br />
+        누구나 쉽게 즐길 수 있으며, 기록을 친구들과 공유할 수도 있어요.<br />
+        게임은 단순한 클릭 기반이며, <strong>광고 클릭을 유도하지 않습니다</strong>.
+      </p>
+      <p style="margin-bottom:20px; font-size:14px; color:#555;">
+        시작 버튼을 누르면 게임이 바로 시작되며, 기록은 로컬에 저장됩니다.<br />
+        이 웹사이트는 광고 네트워크의 정책을 준수하며 사용자 경험을 최우선으로 합니다.
+      </p>
+      <button onclick="startGameWithModal()" style="padding:10px 20px; font-size:16px; background:#4CAF50; color:#fff; border:none; border-radius:8px; cursor:pointer;">게임 시작</button>
+    </div>
+  </div>
+
+  <!-- 👇 카운트다운 숫자 표시 -->
+  <div id="countdown" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); color:#fff; font-size:120px; font-weight:bold; display:flex; justify-content:center; align-items:center; z-index:9999; display:none;"></div>
+
+  <nav>
+    <a href="about.html">소개</a>
+    <a href="contact.html">문의</a>
+    <a href="privacy.html">개인정보</a>
+  </nav>
+
+  <main style="flex: 1;">
+    <h1 id="start">게임 시작~!</h1>
+    <div id="game"></div>
+    <p id="timer">시간: <span id="time">0.00</span>초</p>
+
+    <div class="stats">
+      🕓 최근 기록: <span id="recent">--</span>초<br />
+      🥇 최고 기록: <span id="best">--</span>초<br />
+      📊 당신은 상위 <span id="percent">--</span>% 안에 들어요!<br />
+      <button class="share-btn" onclick="copyResult()">기록 공유하기</button>
+      <button class="share-btn" onclick="resetStats()" style="background:#e74c3c; margin-left:10px;">기록 초기화</button>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 ClickHero |
+    <a href="about.html">소개</a> |
+    <a href="contact.html">문의</a> |
+    <a href="privacy.html">개인정보</a>
+  </footer>
+
+  <script>
+    let extraNumbers = [], current = 1, startTime;
+    const baseAverage = 7.0;
+
+    function shuffle(from, to) {
+      const arr = [];
+      for (let i = from; i <= to; i++) arr.push(i);
+      return arr.sort(() => Math.random() - 0.5);
+    }
+
+    function renderGame(firstSet) {
+      $("#game").empty();
+      for (let num of firstSet) {
+        $("#game").append(`<div class='box'>${num}</div>`);
+      }
+    }
+
+    function updateStats(time) {
+      $("#recent").text(time);
+      const best = localStorage.getItem("clickhero_best");
+      if (!best || parseFloat(time) < parseFloat(best)) {
+        localStorage.setItem("clickhero_best", time);
+        $("#best").text(time);
+      } else {
+        $("#best").text(best);
+      }
+      const percent = Math.max(1, Math.min(99, Math.round((time / baseAverage) * 100)));
+      $("#percent").text(percent);
+    }
+
+    function copyResult() {
+      const time = $("#recent").text();
+      const text = `📈 내 반응속도 기록: ${time}초! 너도 도전해봐 👉 https://clickhero.online`;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("기록이 복사되었습니다! 친구에게 붙여넣어보세요.");
+      });
+    }
+
+    function resetStats() {
+      localStorage.removeItem("clickhero_best");
+      $("#best").text("--");
+      $("#recent").text("--");
+      $("#percent").text("--");
+      $("#time").text("0.00");
+      startTime = null;
+      alert("기록이 초기화되었습니다!");
+    }
+
+    function startGameWithModal() {
+      document.getElementById("introModal").style.display = "none";
+      $("#start").click();
+    }
+
+    // 👇 게임 시작 이벤트 (카운트다운 포함)
+    $(function () {
+      const best = localStorage.getItem("clickhero_best");
+      if (best) $("#best").text(best);
+
+      $("#start").click(function () {
+        $("#start").hide();
+        $("#time").text("준비 중...");
+
+        let count = 3;
+        $("#countdown").text(count).css("display", "flex");
+
+               const timer = setInterval(() => {
+          count--;
+          if (count === 0) {
+            clearInterval(timer);
+            $("#countdown").hide();
+            startGame();
+          } else {
+            $("#countdown").text(count);
+          }
+        }, 1000);
+      });
+
+      $("#game").on("click", ".box", function () {
+        const val = Number($(this).text());
+        if (val === current) {
+          current++;
+          if (val <= 25 && extraNumbers.length > 0) {
+            $(this).text(extraNumbers.pop());
+          } else {
+            $(this).text("").addClass(val <= 25 ? "disabled" : "disappear").off("click");
+          }
+
+          if (current > 50) {
+            const time = ((Date.now() - startTime) / 1000).toFixed(2);
+            $("#time").text(time);
+            updateStats(time);
+            alert(`끝! 기록: ${time}초`);
+            $("#start").text("재도전").show();
+          }
+        }
+      });
+
+      setInterval(() => {
+        if (startTime && current <= 50) {
+          const now = ((Date.now() - startTime) / 1000).toFixed(2);
+          $("#time").text(now);
+        }
+      }, 100);
+    });
+
+    function startGame() {
+      const firstSet = shuffle(1, 25);
+      extraNumbers = shuffle(26, 50);
+      current = 1;
+      renderGame(firstSet);
+      startTime = Date.now();
+      $("#time").text("0.00");
+    }
+  </script>
+</body>
+</html>

@@ -1,9 +1,12 @@
+
 {
   "name": "reaction-speed-app",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +16,8 @@
     "@capacitor/android": "^7.4.0",
     "@capacitor/cli": "^7.4.0",
     "@capacitor/core": "^7.4.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.5"
   }
 }
